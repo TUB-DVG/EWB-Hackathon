@@ -1,0 +1,19 @@
+services:
+  citydb:
+    image: 3dcitydb/3dcitydb-pg:16-3.4-4.4
+    ports:
+      - "5002:5432"
+    volumes:
+      - pgdata_citydb:/var/lib/postgresql/data
+    env_file:
+      - ./config/.env
+    environment:
+      SRID: 25832
+      SRSNAME: urn:adv:crs:ETRS89_UTM32*DE_DHHN92_NH
+      #POSTGRES_USER: ${POSTGRES_USER}
+      #POSTGRES_DB: ${POSTGRES_DB} 
+      #POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    container_name: citydb_ewb
+
+volumes:
+  pgdata_citydb:

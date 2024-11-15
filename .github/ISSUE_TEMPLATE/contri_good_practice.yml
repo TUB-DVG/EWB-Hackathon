@@ -1,0 +1,52 @@
+name: "Good Practice Contribution"
+description: "Template for submitting good practices of software development in research and beyond"
+title: "[ContributionGoodPractice]: <title>"
+labels: ["Good Practice Contribution", "Contribution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thanks for taking the time to fill out this data contribution questionnaire!
+
+  - type: textarea
+    id: good_practice_name
+    attributes:
+      label: "1. Name of the Good Practice"
+      description: "Please provide the name of the good practice."
+      placeholder: "e.g., Reuse and extend other software"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: focus
+    attributes:
+      label: "2. Focus"
+      description: "What kind of focus is the good practice about?"
+      options:
+        - 'Software Design'
+        - 'Meta'
+        - 'Testing'
+        - 'Documentation'
+        - 'Maintenance'
+        - 'Other'
+      default: 0
+
+  - type: dropdown
+    id: timing
+    attributes:
+      label: "3. Timing"
+      description: "When is the good practice applicable?"
+      options:
+        - 'Before development'
+        - 'During development'
+        - 'After development'
+      default: 0
+
+  - type: textarea
+    id: good_practice_explanation
+    attributes:
+      label: "4. Explanation of the Good Practice"
+      description: "Please provide an explanation of the good practice."
+      placeholder: "e.g., This includes not only researching and reusing existing software but also extending it to meet specific needs."
+    validations:
+      required: false
