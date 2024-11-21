@@ -1,4 +1,5 @@
 import pandas as pd
+import geopandas as gpd
 from lxml import etree
 from shapely.geometry import Polygon
 import numpy as np
@@ -40,33 +41,33 @@ def calculate_slope_and_aspect(polygon):
     
     return slope, aspect
 
-def process_gml_to_dataframe(file_path):
+def process_gml_to_geodataframe(file_path):
     """
     Processes a GML file and extracts information about roof surfaces, including ID, area,
-    slope, aspect, and centroid coordinates.
+    slope, aspect, and both original geometry and centroid.
 
     Args:
         file_path (str): The path to the GML file.
 
     Returns:
-        pandas.DataFrame: A DataFrame with the following columns:
+        geopandas.GeoDataFrame: A GeoDataFrame with the following columns:
             - id (str): The ID of the roof surface.
             - area (float): The area of the roof surface in square meters.
-            - centroid_x (float): X-coordinate of the centroid.
-            - centroid_y (float): Y-coordinate of the centroid.
             - slope (float): The slope of the roof surface in degrees.
             - aspect (float): The aspect of the roof surface in degrees.
+            - geometry (Polygon): The original geometry of the roof surface.
+            - centroid (Point): The centroid of the roof surface.
     """
-    # Namespaces für die GML- und CityGML-Tags
+    # Namespaces for GML and CityGML tags
     ns_building = "http://www.opengis.net/citygml/building/1.0"
     ns_gml = "http://www.opengis.net/gml"
 
-    # GML-Datei parsen
+    # Parse the GML file
     tree = etree.parse(file_path)
     root = tree.getroot()
 
-    # Daten sammeln
-    roof_areas = []
+    # Collect data
+    roof_data = []
 
     for roof_surface in root.findall(f".//{{{ns_building}}}RoofSurface"):
         surface_id = roof_surface.attrib.get("{http://www.opengis.net/gml}id", "unknown")
@@ -79,18 +80,23 @@ def process_gml_to_dataframe(file_path):
                     coords = [(coords[i], coords[i + 1], coords[i + 2]) for i in range(0, len(coords), 3)]
                     poly = Polygon(coords)
                     if poly.is_valid:
+                        # Calculate slope and aspect
                         slope, aspect = calculate_slope_and_aspect(poly)
-                        roof_areas.append({
+                        roof_data.append({
                             "id": surface_id,
                             "area": poly.area,
-                            "centroid_x": poly.centroid.x,
-                            "centroid_y": poly.centroid.y,
                             "slope": slope,
                             "aspect": aspect,
+                            "geometry": poly,
+                            "centroid": poly.centroid,
                         })
 
-    # Ergebnisse in einen DataFrame umwandeln
-    return pd.DataFrame(roof_areas)
+    # Convert results to a GeoDataFrame
+    gdf = gpd.GeoDataFrame(roof_data, geometry="geometry").set_crs('EPSG:25833').to_crs('EPSG:4326')
+    gdf["centroid"] = gdf["geometry"].centroid  # Ensure centroid is added as a separate column
+
+    return gdf
+
 
 
 def calculate_pv_potential(data):
@@ -107,12 +113,12 @@ def calculate_pv_potential(data):
     Returns:
         list: A list of API responses (JSON) for each roof surface. In case of errors, the list contains the corresponding error logs.
     """
-    results = []
+    
     eta = 0.2
     for index, row in data.iterrows():
         params = {
-            'lat': row['centroid_y'] / 1000000,
-            'lon': row['centroid_x'] / 1000000,
+            'lat': row['centroid'].y,
+            'lon': row['centroid'].x,
             'angle': row['slope'],
             'aspect': row['aspect'] -180,
             'peakpower': row['area']*0.7*eta,  # Standardmäßig 1 kW
@@ -123,23 +129,16 @@ def calculate_pv_potential(data):
         }
         response = requests.get('https://re.jrc.ec.europa.eu/api/v5_2/PVcalc', params=params)
         if response.status_code == 200:
-            results.append(response.json())
-        else:
-            results.append({'error': response.text})
-    return results
+            pv_potential = response.json()['outputs']['totals']['fixed']['E_y']
+            data.at[index, 'pv_potential'] = pv_potential
+    return data
 
 
 # Beispielverwendung
 file_path = "/home/andrea/Development/EWB-Hackathon/data/processed/Berlin/Mierendorffinsel_Berlin.gml"  # Pfad zur GML-Datei
-roof_df = process_gml_to_dataframe(file_path)
+roof_df = process_gml_to_geodataframe(file_path)
 print(roof_df.head())
 pv_results = calculate_pv_potential(roof_df.head())
-
-# API-Ergebnis analysieren
-for result in pv_results:
-    if 'outputs' in result:
-        print("Annual production (kWh)", result['outputs']['totals']['fixed']['E_y'])
-    else:
-        print("Error:", result.get('error', 'Unknown error'))
+print(pv_results.head())
 
 
