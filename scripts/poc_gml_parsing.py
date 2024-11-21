@@ -135,7 +135,7 @@ def calculate_pv_potential(data):
 
 
 # Beispielverwendung
-file_path = "/home/andrea/Development/EWB-Hackathon/data/processed/Berlin/Mierendorffinsel_Berlin.gml"  # Pfad zur GML-Datei
+file_path = "data/processed/Berlin/Mierendorffinsel_Berlin.gml"  # Pfad zur GML-Datei
 roof_df = process_gml_to_geodataframe(file_path)
 print(roof_df.head())
 pv_results = calculate_pv_potential(roof_df.head())
