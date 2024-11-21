@@ -108,13 +108,14 @@ def calculate_pv_potential(data):
         list: A list of API responses (JSON) for each roof surface. In case of errors, the list contains the corresponding error logs.
     """
     results = []
+    eta = 0.2
     for index, row in data.iterrows():
         params = {
-            'lat': row['centroid_y']/ 1000000,
-            'lon': row['centroid_x']/ 1000000,
+            'lat': row['centroid_y'] / 1000000,
+            'lon': row['centroid_x'] / 1000000,
             'angle': row['slope'],
-            'aspect': row['aspect']-180,
-            'peakpower': 1,  # Standardmäßig 1 kW
+            'aspect': row['aspect'] -180,
+            'peakpower': row['area']*0.7*eta,  # Standardmäßig 1 kW
             'loss': 14,      # Standardverlustfaktor
             'pvtechchoice': 'crystSi',  # PV-Modultyp: kristallines Silizium
             'mountingplace': 'building',
