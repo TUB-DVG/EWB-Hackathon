@@ -66,7 +66,7 @@ def clean_and_convert_data(df):
 tables = get_table_names(conn)
 
 # Liste der Postleitzahlen, nach denen wir filtern wollen
-plz_values = ['10589; 10553 '] # Waldau Kassel: 34123, Fuldatal: 34277, Lohfelden: 34253, '34123', '34277', '34253'
+plz_values = ['10589'] # Berlin Mierendorfinsel
 
 # Dictionary, um die DataFrames zu speichern
 dataframes = {}
