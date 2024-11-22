@@ -5,19 +5,19 @@ import os
 # Datenbankpfad
 db_path = r'C:\Users\LenovoTPX13\.open-MaStR\data\sqlite\open-mastr.db'
 
-# Verzeichnis, in dem die CSV-Dateien gespeichert werden sollen
-output_dir = '../data/filtered_data_mastr_20240916'
+# Verzeichnis, in dem die CSV-Dateien gespeichert werden sollen, relativ zum aktuellen Verzeichnis
+output_dir = os.path.join(os.getcwd(), 'data', 'filtered_data_mastr_20240916')
 
 # Unterordner für die einzelnen Postleitzahlgebiete
 plz_folders = {
-    '10589': os.path.join(output_dir, '10589'), # Berlin Mierendorfinsel
-    
+    '10589': os.path.join(output_dir, '10589'),  # Berlin Mierendorfinsel
 }
 
-# Überprüfen, ob die Verzeichnisse existieren, ansonsten erstellen
+# Überprüfen, ob das Hauptverzeichnis existiert, ansonsten erstellen
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
+# Überprüfen, ob die Unterverzeichnisse existieren, ansonsten erstellen
 for folder in plz_folders.values():
     if not os.path.exists(folder):
         os.makedirs(folder)
